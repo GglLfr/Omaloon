@@ -2,9 +2,6 @@ sourceSets.main{
     java.srcDirs = ['src/']
 }
 
-sourceCompatibility = 17
-targetCompatibility = 17
-
 import arc.files.Fi
 import arc.func.Func2
 import arc.struct.IntMap
@@ -21,24 +18,18 @@ dependencies{
     implementation "com.github.Anuken.Mindustry:core:$mindustryVersion"
 }
 
-task proc(dependsOn: [classes, configurations.runtimeClasspath]){
+tasks.register('prepareSprites', Sync) {
+    from spritesRawDir
+    into spritesDir
+}
 
-    doLast{
-        delete{ delete spritesDir }
-        spritesDir.mkdirs()
+tasks.register('proc', JavaExec) {
+    dependsOn(classes, 'prepareSprites')
 
-        copy{
-            from spritesRawDir
-            into spritesDir
-        }
-
-        javaexec{
-            workingDir = assetsDir
-            main = rootProject.ext.modName.replaceAll("-", "") + '.tools.Tools'
-            classpath = sourceSets.main.runtimeClasspath
-            systemProperty 'currentModName', modName
-        }
-    }
+    workingDir = assetsDir
+    mainClass = provider { rootProject.ext.modName.replaceAll("-", "") + '.tools.Tools' }
+    classpath = sourceSets.main.runtimeClasspath
+    systemProperty 'currentModName', modName
 }
 
 task updateBundles{
